@@ -5,7 +5,7 @@ from time import sleep
 options = webdriver.ChromeOptions()
 options.add_argument('window-size=1920,1080')
 
-driver = webdriver.Chrome('./chromedriver', options=options)
+driver = webdriver.Chrome('../driver/chromedriver.exe', options=options)
 driver.implicitly_wait(5)
 
 driver.get(url='https://www.google.com/')
