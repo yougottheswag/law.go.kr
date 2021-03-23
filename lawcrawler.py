@@ -14,7 +14,7 @@ driver = webdriver.Chrome('./driver/chromedriver',options=options)
 driver.implicitly_wait(3) 
 
 def exclude_special_char(text):
-    pattern = r'[a-zA-Zㄱ-ㅎ가-힣.,_\[\]]'
+    pattern = r'[0-9a-zA-Zㄱ-ㅎ가-힣.,_ㆍ·\[\]]'
     match_res = re.findall(pattern,text)
     res = match_res
     return res
@@ -31,14 +31,15 @@ def scrape_links_to_files(links):
         content = driver.find_element_by_css_selector('#contentBody').text
         try:
             print(title)
+            title = ''.join(exclude_special_char(title))
             if len(title) > 0:
                 f = open("./data/"+title+".txt", "w", encoding="utf-8")
                 f.write(str(content))
                 f.close()    
         except OSError as err:
-            print("OS error: {0}".format(err))
+            print("[OS error: {0}]".format(err))
         except:
-            print("Unexpected error:", sys.exc_info()[0])
+            print("[Unexpected error:{}]".format(sys.exc_info()[0]))
             raise    
 
 def find_max_page_nr():
@@ -63,23 +64,28 @@ def collect_doc_links(query):
     driver.get(url)
     max_page_nr = find_max_page_nr()
     data_links = []
-    for i in range(max_page_nr-1):
-        current_page = i + 2
-        li_title = '"{}페이지"'.format(current_page) #2페이지부터 클릭; added double quotes
+    for i in range(max_page_nr):
+        current_page = i + 2 
         urls = driver.find_elements_by_css_selector('dt.bbg02 > a')
         if urls:
             for url in urls:
                 link = url.get_attribute('href') 
                 if 'LSW' in link:
                     data_links.append(link)
+        else:
+            print('[No url found on page {}]'.format(current_page))
         try:
+            li_title = '"{}페이지"'.format(current_page) #2페이지부터 클릭; added double quotes
             next_page = find_next_page_elm(li_title)
             if next_page:
-                print('Clicking on page {}'.format(current_page))
+                print('[Clicking on page {}]'.format(current_page))
             next_page.click()
         except:
-            print('Could not click on page {}.'.format(current_page))
-            print('Skipping to next page.')
+            if current_page > max_page_nr:
+                print('[Reached the last page.]')
+            else:
+                print('[Could not click on page {}.]'.format(current_page))
+                print('[Skipping to next page.]')
         finally:
             time.sleep(3)
     return data_links
@@ -88,6 +94,7 @@ def main():
     user_input = input('[Article number:]')
     article_nr = '%0*d'%(4, int(user_input)) #if len(user_input) < 5, pads user_input with 0 
     links = collect_doc_links(article_nr)
+    print('[Found {} links to download.]'.format(len(links)))
     if links:
         scrape_links_to_files(links)
     else:
@@ -118,8 +125,6 @@ def save(links):
             
         except OSError as err:
             print("OS error: {0}".format(err))
-            #NOTE: occurs when special chararcter is used in the title
-            #FIXME: Use regex to get rid of special char
         except:
             print("Unexpected error:", sys.exc_info()[0])
             raise
