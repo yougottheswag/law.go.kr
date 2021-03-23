@@ -6,7 +6,13 @@ from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import WebDriverException
 import time
 import re
+import os
 from pprint import pprint
+
+#TODO: Check if num of links matches total num of accessible verdicts
+#TODO: Split the downloaded files into 대법원/고등법원/지방법원/기타
+#TODO: User input should be a list. e.g. 250,251,252,253
+#TODO: The crawler should repeat the process for each item in the list
 
 options = webdriver.ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
@@ -19,7 +25,13 @@ def exclude_special_char(text):
     res = match_res
     return res
 
-def scrape_links_to_files(links):
+def check_folder_exists(file_path):
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+        print('[Created folder {}.]'.format(file_path))
+    return True
+
+def save_links_to_files(links,folder_name):
     for i in range(len(links)):
         driver.get(links[i])
         title =''
@@ -30,12 +42,13 @@ def scrape_links_to_files(links):
         content = ''
         content = driver.find_element_by_css_selector('#contentBody').text
         try:
-            print(title)
             title = ''.join(exclude_special_char(title))
             if len(title) > 0:
-                f = open("./data/"+title+".txt", "w", encoding="utf-8")
-                f.write(str(content))
-                f.close()    
+                folder_path = './data/{}'.format(folder_name)
+                if check_folder_exists(folder_path):
+                    f = open(folder_path+'/'+title+".txt", "w", encoding="utf-8")
+                    f.write(str(content))
+                    f.close()    
         except OSError as err:
             print("[OS error: {0}]".format(err))
         except:
@@ -96,70 +109,11 @@ def main():
     links = collect_doc_links(article_nr)
     print('[Found {} links to download.]'.format(len(links)))
     if links:
-        scrape_links_to_files(links)
+        user_folder_name = '형법{}조'.format(user_input)
+        save_links_to_files(links,user_folder_name)
     else:
         print('No links found.')
     print("[Crawling complete.]")
     
 if __name__ == '__main__':
     main()
-
-'''        
-def save(links):
-    for i in range(len(links)):
-        driver.get(links[i])
-        title =''
-        title1 = driver.find_element_by_css_selector('.subtit1').text.replace(" ","")
-        title2 = driver.find_element_by_css_selector('#contentBody > h2').text.replace(" ","") 
-        title = title1 + title2
-        title = title.replace(":", "_")
-        content = ''
-        content = driver.find_element_by_css_selector('#contentBody').text
-        
-        try:
-            print(title)
-            if len(title) > 0:
-                f = open("./data/"+title+".txt", "w", encoding="utf-8")
-                f.write(str(content))
-                f.close()    
-            
-        except OSError as err:
-            print("OS error: {0}".format(err))
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            raise
-    
-
-def crawler(keyword):
-    ##Loading page
-    print('[ Loading... ]')
-    url = "https://www.law.go.kr/joStmdInfoP.do?lsiSeq=222447&joNo={}&joBrNo=00".format(keyword)
-    driver.get(url)
-    #load page
-    links = []
-    for i in range(10):
-        try:
-            urls = driver.find_elements_by_css_selector('dt.bbg02 > a')
-            for url in urls:
-                link = url.get_attribute('href') 
-                if 'LSW' in link:
-                    links.append(link)
-            page = driver.find_element_by_css_selector("#precPageFrm > div.paging > div > a:nth-child(8) > img")
-            print("page data:",page)
-            page.click()
-            time.sleep(3)
-            print("")
-        except:
-            print(str(i+1)+"page")
-            #FIXME skip page when error occurs
-            
-    
-    save(links)
-
-def main():
-    keword = input("No: ")
-    crawler(keword)
-
-if __name__ == '__main__':
-    main()
-'''
