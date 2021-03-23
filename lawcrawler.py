@@ -3,15 +3,15 @@ import requests
 import sys
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import WebDriverException
 import time
 import re
 from pprint import pprint
 
 options = webdriver.ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
-driver = webdriver.Chrome('../driver/chromedriver',options=options)
+driver = webdriver.Chrome('./driver/chromedriver',options=options)
 driver.implicitly_wait(3) 
-
 
 def exclude_special_char(text):
     pattern = r'[a-zA-Zㄱ-ㅎ가-힣.,_\[\]]'
@@ -29,14 +29,12 @@ def scrape_links_to_files(links):
         title = title.replace(":", "_")
         content = ''
         content = driver.find_element_by_css_selector('#contentBody').text
-        
         try:
             print(title)
             if len(title) > 0:
                 f = open("./data/"+title+".txt", "w", encoding="utf-8")
                 f.write(str(content))
                 f.close()    
-            
         except OSError as err:
             print("OS error: {0}".format(err))
         except:
@@ -51,6 +49,13 @@ def find_max_page_nr():
         max_page_nr = searched_result.group(1)
     return int(max_page_nr)
     
+def find_next_page_elm(li_title):
+    try:
+        page = driver.find_element_by_xpath('//*[@title='+li_title+']/a')
+    except WebDriverException:
+        page = driver.find_element_by_css_selector("#precPageFrm > div.paging > div > a:nth-child(8)")
+    return page
+
 
 def collect_doc_links(query):
     print('[ Loading... ]')
@@ -58,8 +63,9 @@ def collect_doc_links(query):
     driver.get(url)
     max_page_nr = find_max_page_nr()
     data_links = []
-    for i in range(max_page_nr):
-        li_title = '{} 페이지'.format(i+1)
+    for i in range(max_page_nr-1):
+        current_page = i + 2
+        li_title = '"{}페이지"'.format(current_page) #2페이지부터 클릭; added double quotes
         urls = driver.find_elements_by_css_selector('dt.bbg02 > a')
         if urls:
             for url in urls:
@@ -67,14 +73,15 @@ def collect_doc_links(query):
                 if 'LSW' in link:
                     data_links.append(link)
         try:
-            next_page = driver.find_element_by_xpath('//li[@title='+li_title+']/a')
+            next_page = find_next_page_elm(li_title)
+            if next_page:
+                print('Clicking on page {}'.format(current_page))
             next_page.click()
-            time.sleep(3)
-            
         except:
-            print('Could not click on {}.'.format(li_title))
+            print('Could not click on page {}.'.format(current_page))
             print('Skipping to next page.')
-    
+        finally:
+            time.sleep(3)
     return data_links
 
 def main():
