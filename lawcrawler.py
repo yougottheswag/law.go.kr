@@ -32,8 +32,10 @@ def check_folder_exists(file_path):
     return True
 
 def save_links_to_files(links,folder_name):
+    count = 0
     for i in range(len(links)):
         driver.get(links[i])
+        
         title =''
         title1 = driver.find_element_by_css_selector('.subtit1').text.replace(" ","")
         title2 = driver.find_element_by_css_selector('#contentBody > h2').text.replace(" ","") 
@@ -46,23 +48,24 @@ def save_links_to_files(links,folder_name):
             if len(title) > 0:
                 folder_path = './data/{}'.format(folder_name)
                 if check_folder_exists(folder_path):
+                    
                     f = open(folder_path+'/'+title+".txt", "w", encoding="utf-8")
                     f.write(str(content))
-                    f.close()    
+                    f.close()
+                    count = count+1    
         except OSError as err:
             print("[OS error: {0}]".format(err))
         except:
             print("[Unexpected error:{}]".format(sys.exc_info()[0]))
-            raise    
+            raise
+    return count    
+
+
 
 def find_max_page_nr():
     result = driver.find_element_by_css_selector('#conPrecResultDiv > h2').text
     pattern = r'\(\d/(\d+)\)' #get captured string: group(1)
     searched_result = re.search(pattern, result)
-    print(result)
-    print(searched_result)
-    print(searched_result.group(0))
-    print(searched_result.group(1))
     if searched_result:
         max_page_nr = searched_result.group(1)
         
@@ -109,13 +112,14 @@ def collect_doc_links(query):
     return data_links
 
 def main():
-    user_input = input('[Article number:]')
+    user_input = input('[Article number]: ')
     article_nr = '%0*d'%(4, int(user_input)) #if len(user_input) < 5, pads user_input with 0 
     links = collect_doc_links(article_nr)
     print('[Found {} links to download.]'.format(len(links)))
     if links:
         user_folder_name = '형법{}조'.format(user_input)
-        save_links_to_files(links,user_folder_name)
+        download_count = save_links_to_files(links,user_folder_name)
+        print('[{} out of {} cases downloaded.]'.format(download_count, len(links)))
     else:
         print('No links found.')
     print("[Crawling complete.]")
