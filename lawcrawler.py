@@ -113,16 +113,20 @@ def collect_doc_links(query):
 
 def main():
     user_input = input('[Article number]: ')
-    article_nr = '%0*d'%(4, int(user_input)) #if len(user_input) < 5, pads user_input with 0 
-    links = collect_doc_links(article_nr)
-    print('[Found {} links to download.]'.format(len(links)))
-    if links:
-        user_folder_name = '형법{}조'.format(user_input)
-        download_count = save_links_to_files(links,user_folder_name)
-        print('[{} out of {} cases downloaded.]'.format(download_count, len(links)))
-    else:
-        print('No links found.')
-    print("[Crawling complete.]")
+    article_list = user_input.split(',')
+    for i in range(len(article_list)):
+        print('[Start article {} crawling]'.format(article_list[i]))
+        article_nr = '%0*d'%(4, int(article_list[i])) #if len(user_input) < 5, pads user_input with 0 
+        links = collect_doc_links(article_nr)
+        print('[Found {} links to download.]'.format(len(links)))
+        if links:
+            user_folder_name = '형법{}조'.format(article_list[i])
+            download_count = save_links_to_files(links,user_folder_name)
+            print('[{} out of {} cases downloaded.]'.format(download_count, len(links)))
+        else:
+            print('No links found.')
+        print("[Article {} Crawling complete.]".format(article_list[i]))
+        print('--------------------------------------')
     
 if __name__ == '__main__':
     main()
