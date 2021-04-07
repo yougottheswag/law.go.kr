@@ -57,10 +57,15 @@ def save_links_to_files(links,folder_name):
 
 def find_max_page_nr():
     result = driver.find_element_by_css_selector('#conPrecResultDiv > h2').text
-    pattern = r'\(\d/(\d)\)' #get captured string: group(1)
+    pattern = r'\(\d/(\d+)\)' #get captured string: group(1)
     searched_result = re.search(pattern, result)
+    print(result)
+    print(searched_result)
+    print(searched_result.group(0))
+    print(searched_result.group(1))
     if searched_result:
         max_page_nr = searched_result.group(1)
+        
     return int(max_page_nr)
     
 def find_next_page_elm(li_title):
