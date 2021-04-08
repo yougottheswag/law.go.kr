@@ -35,24 +35,71 @@ def save_links_to_files(links,folder_name):
     count = 0
     for i in range(len(links)):
         driver.get(links[i])
-        
         title =''
         title1 = driver.find_element_by_css_selector('.subtit1').text.replace(" ","")
-        title2 = driver.find_element_by_css_selector('#contentBody > h2').text.replace(" ","") 
+        title2 = driver.find_element_by_css_selector('#contentBody > h2').text.replace(" ","")
         title = title1 + title2
         title = title.replace(":", "_")
         content = ''
         content = driver.find_element_by_css_selector('#contentBody').text
+
         try:
             title = ''.join(exclude_special_char(title))
+
             if len(title) > 0:
                 folder_path = './data/{}'.format(folder_name)
+
                 if check_folder_exists(folder_path):
-                    
-                    f = open(folder_path+'/'+title+".txt", "w", encoding="utf-8")
-                    f.write(str(content))
-                    f.close()
-                    count = count+1    
+
+                    if "대법원" in title:
+                        folder_supreme = './data/{}/{}'.format(folder_name, "대법원")
+                        check_folder_exists(folder_supreme)
+                        f = open(folder_supreme+'/'+title+".txt", "w", encoding="utf-8")
+                        f.write(str(content))
+                        f.close()
+                        count = count + 1
+
+                    elif "고등법원" in title:
+                        folder_high = './data/{}/{}'.format(folder_name, "고등법원")
+                        check_folder_exists(folder_high)
+                        f = open(folder_high+'/'+title+".txt", "w", encoding="utf-8")
+                        f.write(str(content))
+                        f.close()
+                        count = count + 1
+
+                    elif "고법" in title:
+                        folder_high = './data/{}/{}'.format(folder_name, "고등법원")
+                        check_folder_exists(folder_high)
+                        f = open(folder_high+'/'+title+".txt", "w", encoding="utf-8")
+                        f.write(str(content))
+                        f.close()
+                        count = count + 1
+
+                    elif "지방법원" in title:
+                        folder_local = './data/{}/{}'.format(folder_name, "지방법원")
+                        check_folder_exists(folder_local)
+                        f = open(folder_local+'/'+title+".txt", "w", encoding="utf-8")
+                        f.write(str(content))
+                        f.close()
+                        count = count + 1
+
+                    elif "지법" in title:
+                        folder_local = './data/{}/{}'.format(folder_name, "지방법원")
+                        check_folder_exists(folder_local)
+                        f = open(folder_local+'/'+title+".txt", "w", encoding="utf-8")
+                        f.write(str(content))
+                        f.close()
+                        count = count + 1
+
+                    else:
+                        folder_etc = './data/{}/{}'.format(folder_name, "기타")
+                        check_folder_exists(folder_etc)
+                        f = open(folder_etc+'/'+title+".txt", "w", encoding="utf-8")
+                        f.write(str(content))
+                        f.close()
+                        count = count + 1
+                        print("[saved all]")
+                        
         except OSError as err:
             print("[OS error: {0}]".format(err))
         except:
@@ -109,20 +156,24 @@ def collect_doc_links(query):
                 print('[Skipping to next page.]')
         finally:
             time.sleep(3)
+
     return data_links
 
 def main():
     user_input = input('[Article number]: ')
     article_list = user_input.split(',')
+
     for i in range(len(article_list)):
         print('[Start article {} crawling]'.format(article_list[i]))
         article_nr = '%0*d'%(4, int(article_list[i])) #if len(user_input) < 5, pads user_input with 0 
         links = collect_doc_links(article_nr)
         print('[Found {} links to download.]'.format(len(links)))
+
         if links:
             user_folder_name = '형법{}조'.format(article_list[i])
             download_count = save_links_to_files(links,user_folder_name)
             print('[{} out of {} cases downloaded.]'.format(download_count, len(links)))
+
         else:
             print('No links found.')
         print("[Article {} Crawling complete.]".format(article_list[i]))
