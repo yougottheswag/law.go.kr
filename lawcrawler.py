@@ -162,6 +162,7 @@ def collect_doc_links(query):
 def main():
     user_input = input('[Article number]: ')
 <<<<<<< HEAD
+<<<<<<< HEAD
     article_list = user_input.split(',')
 
     for i in range(len(article_list)):
@@ -180,6 +181,8 @@ def main():
         print("[Article {} Crawling complete.]".format(article_list[i]))
         print('--------------------------------------')
 =======
+=======
+>>>>>>> parent of 1a9baae (completed Todo3, 4)
     article_nr = '%0*d'%(4, int(user_input)) #if len(user_input) < 5, pads user_input with 0 
     links = collect_doc_links(article_nr)
     print('[Found {} links to download.]'.format(len(links)))
@@ -190,6 +193,9 @@ def main():
     else:
         print('No links found.')
     print("[Crawling complete.]")
+<<<<<<< HEAD
+>>>>>>> parent of 1a9baae (completed Todo3, 4)
+=======
 >>>>>>> parent of 1a9baae (completed Todo3, 4)
     
 if __name__ == '__main__':
