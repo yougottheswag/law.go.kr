@@ -180,6 +180,7 @@ def main():
         print("[Article {} Crawling complete.]".format(article_list[i]))
         print('--------------------------------------')
 =======
+    article_nr = '%0*d'%(4, int(user_input)) #if len(user_input) < 5, pads user_input with 0 
     links = collect_doc_links(article_nr)
     print('[Found {} links to download.]'.format(len(links)))
     if links:
